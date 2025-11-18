@@ -5,6 +5,15 @@ fn main() {
     let dst = Config::new("libverona").build();
     println!("cargo:rustc-link-search=native={}", dst.display());
     println!("cargo:rustc-link-lib=static=verona");
-    //println!("cargo:rustc-link-lib=static=stdc++");
-    println!("cargo:rustc-link-lib=static=c++");
+
+    #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+    {
+        println!("cargo:rustc-link-lib=stdc++");
+        println!("cargo:rustc-link-lib=atomic");
+    }
+
+    #[cfg(target_arch = "aarch64")]
+    {
+        println!("cargo:rustc-link-lib=c++");
+    }
 }
