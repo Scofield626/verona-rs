@@ -4,20 +4,24 @@ mod verona_stubs;
 
 use std::time::Duration;
 
-async fn say_hello() {
+use crate::executor::Executor;
+
+async fn say_hello(exec: Executor) {
     println!("hello");
     timerfuture::TimerFuture::new(Duration::new(2, 0)).await;
     println!("world");
 
-    executor::spawn(async {
+    Executor::spawn(async {
         println!("I can spawn like this too");
-    })
+    });
+
+    exec.shutdown();
 }
 
 fn main() {
-    let exec = executor::Executor::new();
+    let exec = executor::Executor::new(2);
 
-    exec.spawn(say_hello());
+    Executor::spawn(say_hello(exec));
 
-    exec.run();
+    exec.run(); // wait for all shutdown signals
 }
