@@ -11,8 +11,7 @@ using namespace verona::cpp;
 
 static std::atomic<bool> external_source_added{false};
 
-extern "C" {
-void poll_future_in_rust(void *future);
+#include "libverona/verona_bridge.h"
 
 void runtime_init(size_t threads) {
   auto &sched = Scheduler::get();
@@ -40,7 +39,6 @@ void scheduler_run() {
   sched.run();
 }
 
-void schedule_task(void *task) {
-  when() << [=]() { poll_future_in_rust(task); };
-}
+void schedule_task(rust::Box<VeronaTask> task) {
+  when() << [t = std::move(task)]() mutable { poll_future(std::move(t)); };
 }
