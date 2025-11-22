@@ -4,7 +4,6 @@ use futures::{
     task::{waker_ref, ArcWake},
 };
 use std::{
-    ffi::c_void,
     future::Future,
     sync::{Arc, Mutex},
     task::Context,
@@ -47,21 +46,16 @@ impl Executor {
     }
 }
 
-#[no_mangle]
-pub extern "C" fn poll_future_in_rust(task: *mut c_void) {
-    let result = std::panic::catch_unwind(|| unsafe {
-        let raw_ptr = task as *mut Task;
-        let boxed_task = Arc::from_raw(raw_ptr);
-
+pub fn poll_future_in_rust(task: Arc<Task>) {
+    let result = std::panic::catch_unwind(|| {
         let is_pending = {
-            let mut boxed_future = boxed_task.future.lock().unwrap();
-            let waker = waker_ref(&boxed_task);
+            let mut boxed_future = task.future.lock().unwrap();
+            let waker = waker_ref(&task);
             let context = &mut Context::from_waker(&waker);
             boxed_future.as_mut().poll(context).is_pending()
         };
 
         if is_pending {
-            std::mem::forget(boxed_task);
             println!("Task is not finished yet");
         } else {
             println!("Task is finished");
