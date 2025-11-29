@@ -9,15 +9,36 @@ pub mod ffi {
     extern "Rust" {
         type VeronaTask;
         fn poll_future(task: Box<VeronaTask>);
+
+        // Cown callback handling
+        type CownCallback;
+        fn invoke_cown_callback(cb: Box<CownCallback>, data_ptr: usize);
     }
 
     unsafe extern "C++" {
         include!("libverona/verona_bridge.h");
 
+        // Runtime functions
         fn runtime_init(threads: usize);
         fn runtime_shutdown();
         fn scheduler_run();
         fn schedule_task(task: Box<VeronaTask>);
+
+        // Cown operations - type-erased via void*
+        type VoidCown;
+
+        /// Create a cown holding arbitrary Rust data (passed as usize pointer)
+        /// dtor is a function pointer (as usize) that will be called when the cown is destroyed
+        unsafe fn make_cown(data_ptr: usize, dtor_ptr: usize) -> UniquePtr<VoidCown>;
+
+        /// Clone a cown reference (increments reference count)
+        fn cown_clone(cown: &VoidCown) -> UniquePtr<VoidCown>;
+
+        /// Schedule a when() clause on a single cown
+        fn when_cown(cown: &VoidCown, callback: Box<CownCallback>);
+
+        /// Schedule a when() clause on two cowns
+        fn when_cown2(cown1: &VoidCown, cown2: &VoidCown, callback: Box<CownCallback>);
     }
 }
 
@@ -50,4 +71,16 @@ pub fn verona_schedule_task(task: Arc<Task>) {
 #[allow(clippy::boxed_local)]
 pub fn poll_future(task: Box<VeronaTask>) {
     crate::executor::poll_future_in_rust(task.task.clone());
+}
+
+// Cown callback support
+pub struct CownCallback {
+    // Placeholder for now - will be filled in Phase 2
+}
+
+#[allow(clippy::boxed_local)]
+pub fn invoke_cown_callback(_cb: Box<CownCallback>, _data_ptr: usize) {
+    // Placeholder for Phase 2 when() implementation
+    // This will invoke the user's closure with the acquired cown data
+    eprintln!("invoke_cown_callback called (not yet implemented)");
 }

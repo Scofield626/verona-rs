@@ -1,10 +1,10 @@
-mod executor;
-mod timerfuture;
-mod verona_stubs;
+use verust::{
+    cown,
+    executor::{self, Executor},
+    timerfuture,
+};
 
 use std::time::Duration;
-
-use crate::executor::Executor;
 
 async fn say_hello(exec: Executor) {
     println!("hello");
@@ -19,9 +19,26 @@ async fn say_hello(exec: Executor) {
 }
 
 fn main() {
-    let exec = executor::Executor::new(2);
+    println!("Starting Verona runtime");
+    let exec = executor::Executor::new(4);
 
-    Executor::spawn(say_hello(exec));
+    // Test basic cown creation
+    println!("Testing cown creation...");
+    let counter = cown::Cown::new(42i32);
+    println!("Created cown with value 42");
 
-    exec.run(); // wait for all shutdown signals
+    // Clone the cown to verify reference counting works
+    let counter2 = counter.clone();
+    println!("Cloned cown");
+
+    // Drop them to verify cleanup
+    drop(counter);
+    drop(counter2);
+    println!("Dropped cowns successfully");
+
+    // Existing async test
+    Executor::spawn(say_hello(exec.clone()));
+
+    println!("Running Verona scheduler...");
+    exec.run();
 }
