@@ -24,7 +24,7 @@ struct VoidCown {
   ~VoidCown();
 };
 
-std::unique_ptr<VoidCown> make_cown_any(size_t data_ptr);
+std::unique_ptr<VoidCown> make_cown(size_t data_ptr, size_t dtor_ptr);
 std::unique_ptr<VoidCown> cown_clone(const VoidCown &cown);
 void when_cown(const VoidCown &cown, rust::Box<CownCallback> callback);
 void when_cown2(const VoidCown &cown1, const VoidCown &cown2,

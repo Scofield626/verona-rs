@@ -28,7 +28,8 @@ pub mod ffi {
         type VoidCown;
 
         /// Create a cown holding arbitrary Rust data (passed as usize pointer)
-        fn make_cown_any(data_ptr: usize) -> UniquePtr<VoidCown>;
+        /// dtor is a function pointer (as usize) that will be called when the cown is destroyed
+        unsafe fn make_cown(data_ptr: usize, dtor_ptr: usize) -> UniquePtr<VoidCown>;
 
         /// Clone a cown reference (increments reference count)
         fn cown_clone(cown: &VoidCown) -> UniquePtr<VoidCown>;

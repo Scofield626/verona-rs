@@ -111,6 +111,7 @@ fn test_cown_drop_order() {
     // Note: The actual drop happens asynchronously in the Verona runtime
     // So we can't reliably test the exact count without running the runtime
     // This test just verifies no crashes occur
+    // assert_eq!(drop_count.load(Ordering::SeqCst), 1); // Uncomment to test if synchronous
     assert!(true);
 }
 
